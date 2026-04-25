@@ -3,7 +3,7 @@ import { autosave } from '../storage.js';
 import { startPlayback, stopPlayback } from '../audio/scheduler.js';
 import { highlightStep, renderGrid } from './grid.js';
 
-export function bindControls({ onClear, onReset, onImport, onExport }) {
+export function bindControls({ onClear, onReset, onImport, onExport, onStepCountChange }) {
   const bpmInput  = document.getElementById('bpm-input');
   const bpmSlider = document.getElementById('bpm-slider');
 
@@ -33,6 +33,16 @@ export function bindControls({ onClear, onReset, onImport, onExport }) {
   document.getElementById('reset-btn').addEventListener('click', onReset);
   document.getElementById('import-btn').addEventListener('click', onImport);
   document.getElementById('export-btn').addEventListener('click', onExport);
+
+  document.querySelectorAll('[data-steps]').forEach(chip => {
+    chip.classList.toggle('active', parseInt(chip.dataset.steps) === state.stepCount);
+    chip.addEventListener('click', () => {
+      onStepCountChange?.(parseInt(chip.dataset.steps, 10));
+      document.querySelectorAll('[data-steps]').forEach(c => {
+        c.classList.toggle('active', parseInt(c.dataset.steps) === state.stepCount);
+      });
+    });
+  });
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;

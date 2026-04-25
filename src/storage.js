@@ -4,6 +4,7 @@ const KEYS = {
   VERSION:      'drumMachine.version',
   PATTERN:      'drumMachine.pattern',
   BPM:          'drumMachine.bpm',
+  STEP_COUNT:   'drumMachine.stepCount',
   INSTRUMENTS:  'drumMachine.instruments',
   USER_PRESETS: 'drumMachine.userPresets',
 };
@@ -22,6 +23,7 @@ export function saveToLocalStorage() {
     localStorage.setItem(KEYS.VERSION, '1.0');
     localStorage.setItem(KEYS.PATTERN, JSON.stringify(state.pattern));
     localStorage.setItem(KEYS.BPM, String(state.bpm));
+    localStorage.setItem(KEYS.STEP_COUNT, String(state.stepCount));
     localStorage.setItem(KEYS.INSTRUMENTS, JSON.stringify(
       INSTRUMENTS.map(({ id, params }) => ({ id, params }))
     ));
@@ -35,10 +37,21 @@ export function loadFromLocalStorage() {
     if (!localStorage.getItem(KEYS.VERSION)) return false;
 
     const pattern = localStorage.getItem(KEYS.PATTERN);
-    if (pattern) state.pattern = JSON.parse(pattern);
+    if (pattern) {
+      const parsed = JSON.parse(pattern);
+      // Pad each row to 32 in case this is an older 16-step save
+      state.pattern = parsed.map(row => {
+        const padded = Array(32).fill(false);
+        row.forEach((v, i) => { if (i < 32) padded[i] = !!v; });
+        return padded;
+      });
+    }
 
     const bpm = localStorage.getItem(KEYS.BPM);
     if (bpm) state.bpm = parseInt(bpm, 10);
+
+    const stepCount = localStorage.getItem(KEYS.STEP_COUNT);
+    if (stepCount) state.stepCount = parseInt(stepCount, 10);
 
     const instruments = localStorage.getItem(KEYS.INSTRUMENTS);
     if (instruments) {

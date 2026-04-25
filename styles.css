@@ -124,7 +124,32 @@ button.danger:hover { background: #ff4757; color: white; }
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 20px;
+  user-select: none;
 }
+
+/* Beat header */
+.beat-header {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.beat-header-spacer {
+  /* matches .track-label width */
+}
+
+.beat-cell {
+  text-align: center;
+  font-size: 10px;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+  border-radius: 2px;
+}
+
+.beat-cell.bar-start { color: var(--color-text); font-weight: 600; }
+.beat-cell.bar-odd   { background: rgba(255, 255, 255, 0.04); }
 
 .track {
   display: grid;
@@ -155,10 +180,13 @@ button.danger:hover { background: #ff4757; color: white; }
   border-radius: 4px;
   background: var(--color-bg);
   cursor: pointer;
-  transition: all 0.1s;
+  transition: background 0.1s;
   position: relative;
   padding: 0;
 }
+
+.step.bar-start { border-left: 2px solid rgba(255, 255, 255, 0.22); }
+.step.bar-odd   { background: rgba(255, 255, 255, 0.03); }
 
 .step:hover { border-color: var(--color-text-dim); }
 .step.active { border-color: currentColor; }
@@ -170,6 +198,27 @@ button.danger:hover { background: #ff4757; color: white; }
   border: 3px solid white;
   border-radius: 6px;
   pointer-events: none;
+}
+
+/* Step count chips */
+.step-count-group {
+  display: flex;
+  gap: 2px;
+}
+
+.step-chip {
+  padding: 6px 10px;
+  font-size: 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-dim);
+}
+
+.step-chip.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
 }
 
 /* Track-specific active colours */
