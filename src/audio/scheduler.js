@@ -27,7 +27,7 @@ function scheduleNote(step, time) {
 
 function advanceStep() {
   nextNoteTime += getStepDuration();
-  state.currentStep = (state.currentStep + 1) % 16;
+  state.currentStep = (state.currentStep + 1) % state.stepCount;
 }
 
 function tick() {

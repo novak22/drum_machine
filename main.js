@@ -39,13 +39,14 @@ initSoundDesigner();
 // Bind transport / footer controls
 bindControls({
   onClear() {
-    state.pattern = Array(16).fill(null).map(() => Array(16).fill(false));
+    state.pattern = Array(16).fill(null).map(() => Array(32).fill(false));
     renderGrid();
     autosave();
   },
   onReset() {
     if (!confirm('Reset everything to defaults? This will clear the pattern and restore all sound settings.')) return;
-    state.pattern = Array(16).fill(null).map(() => Array(16).fill(false));
+    state.pattern = Array(16).fill(null).map(() => Array(32).fill(false));
+    state.stepCount = 16;
     resetInstruments();
     clearAll();
     saveToLocalStorage();
@@ -53,13 +54,28 @@ bindControls({
     showSaveIndicator('Reset complete');
   },
   onImport() {
-    importMIDI(INSTRUMENTS, (pattern) => {
-      state.pattern = pattern;
+    importMIDI(INSTRUMENTS, (imported) => {
+      state.pattern = imported.map(row => {
+        const padded = Array(32).fill(false);
+        row.forEach((v, i) => { if (i < 32) padded[i] = !!v; });
+        return padded;
+      });
       renderGrid();
       autosave();
     });
   },
   onExport() {
     exportMIDI(state.pattern, INSTRUMENTS, state.bpm);
+  },
+  onStepCountChange(newCount) {
+    if (newCount < state.stepCount) {
+      const hasHiddenSteps = INSTRUMENTS.some((_, track) =>
+        state.pattern[track].slice(newCount).some(Boolean)
+      );
+      if (hasHiddenSteps && !confirm(`Steps beyond ${newCount} will be hidden (not deleted). Continue?`)) return;
+    }
+    state.stepCount = newCount;
+    renderGrid();
+    autosave();
   },
 });
