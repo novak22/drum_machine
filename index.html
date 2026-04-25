@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drum Machine</title>
+  <style>
+    :root {
+      --color-bg: #1a1a1a;
+      --color-surface: #2a2a2a;
+      --color-text: #e0e0e0;
+      --color-text-dim: #888;
+      --color-border: #444;
+      --color-accent: #4a9eff;
+
+      /* Track colors */
+      --color-kick: #ff6b6b;
+      --color-snare: #4ecdc4;
+      --color-hhc: #ffe66d;
+      --color-hho: #ffb347;
+      --color-clap: #95e1d3;
+      --color-tomlo: #c77dff;
+      --color-tomhi: #9d4edd;
+      --color-rim: #06ffa5;
+      --color-cowbell: #ffd93d;
+      --color-crash: #ff6b9d;
+      --color-ride: #6bcf7f;
+      --color-shaker: #c9ada7;
+      --color-congahi: #ff9b85;
+      --color-congalo: #ff8066;
+      --color-clave: #a8dadc;
+      --color-woodblk: #8b5a3c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      background: var(--color-surface);
+      padding: 20px;
+      border-radius: 8px 8px 0 0;
+      border: 1px solid var(--color-border);
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .bpm-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bpm-control label {
+      font-size: 14px;
+      color: var(--color-text-dim);
+    }
+
+    .bpm-control input[type="number"] {
+      width: 60px;
+      padding: 6px 8px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text);
+      font-size: 14px;
+    }
+
+    .bpm-control input[type="range"] {
+      width: 120px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background: var(--color-accent);
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.stop {
+      background: #ff4757;
+    }
+
+    button.secondary {
+      background: #555;
+    }
+
+    /* Sequencer grid */
+    .sequencer {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 0 0 8px 8px;
+      padding: 20px;
+    }
+
+    .track {
+      display: grid;
+      grid-template-columns: 100px repeat(16, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .track:last-child {
+      margin-bottom: 0;
+    }
+
+    .track-label {
+      font-size: 13px;
+      font-weight: 500;
+      padding-right: 10px;
+      text-align: right;
+    }
+
+    .step {
+      aspect-ratio: 1;
+      border: 2px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-bg);
+      cursor: pointer;
+      transition: all 0.1s;
+      position: relative;
+    }
+
+    .step:hover {
+      border-color: var(--color-text-dim);
+    }
+
+    .step.active {
+      border-color: currentColor;
+    }
+
+    .step.current::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 3px solid white;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* Track-specific colors */
+    .track[data-track="0"] .step.active { background: var(--color-kick); color: var(--color-kick); }
+    .track[data-track="1"] .step.active { background: var(--color-snare); color: var(--color-snare); }
+    .track[data-track="2"] .step.active { background: var(--color-hhc); color: var(--color-hhc); }
+    .track[data-track="3"] .step.active { background: var(--color-hho); color: var(--color-hho); }
+    .track[data-track="4"] .step.active { background: var(--color-clap); color: var(--color-clap); }
+    .track[data-track="5"] .step.active { background: var(--color-tomlo); color: var(--color-tomlo); }
+    .track[data-track="6"] .step.active { background: var(--color-tomhi); color: var(--color-tomhi); }
+    .track[data-track="7"] .step.active { background: var(--color-rim); color: var(--color-rim); }
+    .track[data-track="8"] .step.active { background: var(--color-cowbell); color: var(--color-cowbell); }
+    .track[data-track="9"] .step.active { background: var(--color-crash); color: var(--color-crash); }
+    .track[data-track="10"] .step.active { background: var(--color-ride); color: var(--color-ride); }
+    .track[data-track="11"] .step.active { background: var(--color-shaker); color: var(--color-shaker); }
+    .track[data-track="12"] .step.active { background: var(--color-congahi); color: var(--color-congahi); }
+    .track[data-track="13"] .step.active { background: var(--color-congalo); color: var(--color-congalo); }
+    .track[data-track="14"] .step.active { background: var(--color-clave); color: var(--color-clave); }
+    .track[data-track="15"] .step.active { background: var(--color-woodblk); color: var(--color-woodblk); }
+
+    /* Footer */
+    .footer {
+      background: var(--color-surface);
+      padding: 15px 20px;
+      border: 1px solid var(--color-border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: -8px;
+      gap: 10px;
+    }
+
+    .footer-left,
+    .footer-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button.danger {
+      background: #333;
+      color: #ff6b6b;
+    }
+
+    button.danger:hover {
+      background: #ff4757;
+      color: white;
+    }
+
+    .save-indicator {
+      font-size: 12px;
+      color: var(--color-text-dim);
+      transition: opacity 0.3s;
+      opacity: 0;
+    }
+
+    .save-indicator.visible {
+      opacity: 1;
+    }
+
+    /* Clickable track labels */
+    .track-label:hover {
+      color: var(--color-accent);
+      text-decoration: underline;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal.open {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--color-text);
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      opacity: 0.7;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .preset-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .preset-row select {
+      flex: 1;
+      padding: 6px 8px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+
+    .param-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .param-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 80px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .param-row label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .param-row input[type="range"] {
+      width: 100%;
+    }
+
+    .param-row input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+
+    .param-row select {
+      grid-column: 2 / 4;
+      padding: 6px 8px;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text);
+      font-size: 13px;
+    }
+
+    .modal-actions {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: center;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .step {
+        min-width: 30px;
+      }
+
+      .track {
+        grid-template-columns: 80px repeat(16, 1fr);
+      }
+
+      .track-label {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🥁 DRUM MACHINE</h1>
+      <div class="controls">
+        <div class="bpm-control">
+          <label>BPM</label>
+          <input type="number" id="bpm-input" min="60" max="180" value="120">
+          <input type="range" id="bpm-slider" min="60" max="180" value="120">
+        </div>
+        <button id="play-btn">▶ PLAY</button>
+        <button id="stop-btn" class="stop">■ STOP</button>
+      </div>
+    </div>
+
+    <div class="sequencer" id="sequencer">
+      <!-- Grid will be generated by JavaScript -->
+    </div>
+
+    <div class="footer">
+      <div class="footer-left">
+        <button id="clear-btn" class="secondary">Clear</button>
+        <button id="reset-btn" class="secondary danger">Reset All</button>
+      </div>
+      <div class="footer-right">
+        <span id="save-indicator" class="save-indicator"></span>
+        <button id="import-btn" class="secondary">Import MIDI</button>
+        <button id="export-btn" class="secondary">Export MIDI</button>
+      </div>
+    </div>
+
+    <!-- Sound Designer Modal -->
+    <div id="sound-designer-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Edit Sound</h2>
+          <button id="modal-close" class="close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Preset Row -->
+          <div class="preset-row">
+            <select id="preset-select"></select>
+            <button id="load-preset-btn" class="secondary">Load</button>
+            <button id="save-preset-btn" class="secondary">Save New</button>
+          </div>
+
+          <!-- Parameter Controls (dynamically generated) -->
+          <div id="param-controls" class="param-grid"></div>
+
+          <!-- Preview Button -->
+          <div class="modal-actions">
+            <button id="preview-sound-btn" class="secondary">Preview Sound</button>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="cancel-params-btn" class="secondary">Cancel</button>
+          <button id="apply-params-btn">Apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDI libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/midi-writer-js@latest/build/index.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/midi-parser-js@latest/src/main.js"></script>
+
+  <script>
+    // ============================================================================
+    // STATE & CONSTANTS
+    // ============================================================================
+
+    const TRACK_NAMES = [
+      'Kick',
+      'Snare',
+      'HH close',
+      'HH open',
+      'Clap',
+      'Tom lo',
+      'Tom hi',
+      'Rim',
+      'Cowbell',
+      'Crash',
+      'Ride',
+      'Shaker',
+      'Conga hi',
+      'Conga lo',
+      'Clave',
+      'Wood blk'
+    ];
+
+    const state = {
+      pattern: Array(16).fill().map(() => Array(16).fill(false)),
+      bpm: 120,
+      isPlaying: false,
+      currentStep: 0,
+      ui: {
+        selectedTrack: null,
+        modalOpen: false,
+        tempParams: null
+      }
+    };
+
+    // ============================================================================
+    // INSTRUMENT PARAMETER DEFINITIONS
+    // ============================================================================
+
+    // Default parameters for each instrument type
+    const DEFAULT_PARAMS = {
+      kick: { oscType: 'sine', pitchStart: 150, pitchEnd: 40, pitchDecay: 0.5, gain: 1.0, attackTime: 0.001, decayTime: 0.5 },
+      snare: { tonePitch: 200, toneMix: 0.7, toneDecay: 0.1, noiseFilterType: 'highpass', noiseFilterFreq: 1000, noiseMix: 1.0, noiseDecay: 0.2, gain: 1.0 },
+      hhclose: { noiseDuration: 0.06, filterType: 'bandpass', filterFreq: 8000, filterQ: 1, gain: 0.5, attackTime: 0.001, decayTime: 0.06 },
+      hhopen: { noiseDuration: 0.3, filterType: 'bandpass', filterFreq: 8000, filterQ: 1, gain: 0.5, attackTime: 0.001, decayTime: 0.3 },
+      clap: { bursts: 3, burstDelay: 0.02, noiseDuration: 0.05, filterType: 'bandpass', filterFreq: 1500, gain: 0.5, decay: 0.05 },
+      tomlo: { oscType: 'sine', pitchStart: 120, pitchEnd: 80, pitchDecay: 0.3, gain: 0.8, attackTime: 0.001, decayTime: 0.3 },
+      tomhi: { oscType: 'sine', pitchStart: 220, pitchEnd: 180, pitchDecay: 0.2, gain: 0.8, attackTime: 0.001, decayTime: 0.2 },
+      rim: { tonePitch: 1000, toneMix: 0.5, toneDecay: 0.02, noiseFilterType: 'highpass', noiseFilterFreq: 2000, noiseMix: 0.3, noiseDecay: 0.02, gain: 0.5 },
+      cowbell: { oscType: 'square', pitchStart: 800, pitchEnd: 600, pitchDecay: 0.2, gain: 0.7, attackTime: 0.001, decayTime: 0.2 },
+      crash: { noiseDuration: 2.0, filterType: 'highpass', filterFreq: 4000, filterQ: 0.5, gain: 0.6, attackTime: 0.01, decayTime: 2.0 },
+      ride: { noiseDuration: 0.8, filterType: 'bandpass', filterFreq: 6000, filterQ: 1.5, gain: 0.5, attackTime: 0.001, decayTime: 0.8 },
+      shaker: { noiseDuration: 0.08, filterType: 'highpass', filterFreq: 10000, filterQ: 1, gain: 0.4, attackTime: 0.001, decayTime: 0.08 },
+      congahi: { oscType: 'sine', pitchStart: 400, pitchEnd: 350, pitchDecay: 0.25, gain: 0.75, attackTime: 0.001, decayTime: 0.25 },
+      congalo: { oscType: 'sine', pitchStart: 200, pitchEnd: 170, pitchDecay: 0.3, gain: 0.75, attackTime: 0.001, decayTime: 0.3 },
+      clave: { oscType: 'sine', pitchStart: 2500, pitchEnd: 2500, pitchDecay: 0.03, gain: 0.6, attackTime: 0.001, decayTime: 0.03 },
+      woodblk: { oscType: 'triangle', pitchStart: 1200, pitchEnd: 1000, pitchDecay: 0.05, gain: 0.65, attackTime: 0.001, decayTime: 0.05 }
+    };
+
+    // Ordered list of default param keys matching INSTRUMENTS index
+    const DEFAULT_PARAMS_ORDER = [
+      'kick','snare','hhclose','hhopen','clap','tomlo','tomhi','rim',
+      'cowbell','crash','ride','shaker','congahi','congalo','clave','woodblk'
+    ];
+
+    // Instrument metadata and voice type assignments (params deep-cloned so DEFAULT_PARAMS stays immutable)
+    const INSTRUMENTS = [
+      { id: 0, name: 'Kick', type: 'tone', gmNote: 36, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.kick)) },
+      { id: 1, name: 'Snare', type: 'hybrid', gmNote: 38, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.snare)) },
+      { id: 2, name: 'HH close', type: 'noise', gmNote: 42, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.hhclose)) },
+      { id: 3, name: 'HH open', type: 'noise', gmNote: 46, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.hhopen)) },
+      { id: 4, name: 'Clap', type: 'multi', gmNote: 39, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.clap)) },
+      { id: 5, name: 'Tom lo', type: 'tone', gmNote: 45, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.tomlo)) },
+      { id: 6, name: 'Tom hi', type: 'tone', gmNote: 50, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.tomhi)) },
+      { id: 7, name: 'Rim', type: 'hybrid', gmNote: 37, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.rim)) },
+      { id: 8, name: 'Cowbell', type: 'tone', gmNote: 56, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.cowbell)) },
+      { id: 9, name: 'Crash', type: 'noise', gmNote: 49, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.crash)) },
+      { id: 10, name: 'Ride', type: 'noise', gmNote: 51, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.ride)) },
+      { id: 11, name: 'Shaker', type: 'noise', gmNote: 70, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.shaker)) },
+      { id: 12, name: 'Conga hi', type: 'tone', gmNote: 62, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.congahi)) },
+      { id: 13, name: 'Conga lo', type: 'tone', gmNote: 64, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.congalo)) },
+      { id: 14, name: 'Clave', type: 'tone', gmNote: 75, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.clave)) },
+      { id: 15, name: 'Wood blk', type: 'tone', gmNote: 76, params: JSON.parse(JSON.stringify(DEFAULT_PARAMS.woodblk)) }
+    ];
+
+    // ============================================================================
+    // UI RENDERING
+    // ============================================================================
+
+    function renderGrid() {
+      const sequencer = document.getElementById('sequencer');
+      sequencer.innerHTML = '';
+
+      for (let track = 0; track < 16; track++) {
+        const trackDiv = document.createElement('div');
+        trackDiv.className = 'track';
+        trackDiv.dataset.track = track;
+
+        // Track label (clickable to edit)
+        const label = document.createElement('div');
+        label.className = 'track-label';
+        label.textContent = TRACK_NAMES[track];
+        label.style.cursor = 'pointer';
+        label.title = 'Click to edit sound';
+        label.addEventListener('click', () => openModal(track));
+        trackDiv.appendChild(label);
+
+        // Steps
+        for (let step = 0; step < 16; step++) {
+          const stepBtn = document.createElement('button');
+          stepBtn.className = 'step';
+          stepBtn.dataset.track = track;
+          stepBtn.dataset.step = step;
+
+          if (state.pattern[track][step]) {
+            stepBtn.classList.add('active');
+          }
+
+          stepBtn.addEventListener('click', () => toggleStep(track, step));
+          trackDiv.appendChild(stepBtn);
+        }
+
+        sequencer.appendChild(trackDiv);
+      }
+    }
+
+    function toggleStep(track, step) {
+      state.pattern[track][step] = !state.pattern[track][step];
+      updateStepUI(track, step);
+      autosave();
+    }
+
+    function updateStepUI(track, step) {
+      const stepBtn = document.querySelector(
+        `.step[data-track="${track}"][data-step="${step}"]`
+      );
+      if (stepBtn) {
+        stepBtn.classList.toggle('active', state.pattern[track][step]);
+      }
+    }
+
+    function highlightStep(step) {
+      // Remove previous highlights
+      document.querySelectorAll('.step.current').forEach(el => {
+        el.classList.remove('current');
+      });
+
+      // Add current highlight
+      if (step !== null) {
+        document.querySelectorAll(`.step[data-step="${step}"]`).forEach(el => {
+          el.classList.add('current');
+        });
+      }
+    }
+
+    // ============================================================================
+    // CONTROLS
+    // ============================================================================
+
+    function bindControls() {
+      const bpmInput = document.getElementById('bpm-input');
+      const bpmSlider = document.getElementById('bpm-slider');
+      const playBtn = document.getElementById('play-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const importBtn = document.getElementById('import-btn');
+      const exportBtn = document.getElementById('export-btn');
+
+      // BPM sync
+      bpmInput.addEventListener('input', (e) => {
+        const value = Math.max(60, Math.min(180, parseInt(e.target.value) || 120));
+        state.bpm = value;
+        bpmSlider.value = value;
+        autosave();
+      });
+
+      bpmSlider.addEventListener('input', (e) => {
+        state.bpm = parseInt(e.target.value);
+        bpmInput.value = state.bpm;
+        autosave();
+      });
+
+      // Transport
+      playBtn.addEventListener('click', startPlayback);
+      stopBtn.addEventListener('click', stopPlayback);
+
+      // Clear
+      clearBtn.addEventListener('click', clearPattern);
+
+      // Reset all (clears pattern AND restores default instrument params)
+      resetBtn.addEventListener('click', () => {
+        if (!confirm('Reset everything to defaults? This will clear the pattern and restore all sound settings.')) return;
+        clearPattern();
+        INSTRUMENTS.forEach((inst, i) => {
+          inst.params = JSON.parse(JSON.stringify(DEFAULT_PARAMS[DEFAULT_PARAMS_ORDER[i]]));
+        });
+        localStorage.removeItem('drumMachine.version');
+        saveToLocalStorage();
+        showSaveIndicator('Reset complete');
+      });
+
+      // Import / Export
+      importBtn.addEventListener('click', importMIDI);
+      exportBtn.addEventListener('click', exportMIDI);
+    }
+
+    function clearPattern() {
+      state.pattern = Array(16).fill().map(() => Array(16).fill(false));
+      renderGrid();
+      autosave();
+    }
+
+    // ============================================================================
+    // MODAL SOUND DESIGNER
+    // ============================================================================
+
+    // Built-in presets per voice type
+    const BUILTIN_PRESETS = {
+      tone: [
+        { name: 'Deep Kick',    params: { oscType: 'sine',     pitchStart: 100, pitchEnd: 30,  pitchDecay: 0.6, gain: 1.0, attackTime: 0.001, decayTime: 0.6 } },
+        { name: 'Punchy Kick',  params: { oscType: 'sine',     pitchStart: 200, pitchEnd: 50,  pitchDecay: 0.2, gain: 1.0, attackTime: 0.001, decayTime: 0.2 } },
+        { name: 'Tom Tight',    params: { oscType: 'sine',     pitchStart: 160, pitchEnd: 120, pitchDecay: 0.15,gain: 0.8, attackTime: 0.001, decayTime: 0.15 } },
+        { name: 'Cowbell Tight',params: { oscType: 'square',   pitchStart: 900, pitchEnd: 700, pitchDecay: 0.1, gain: 0.7, attackTime: 0.001, decayTime: 0.1 } },
+        { name: 'Cowbell Long', params: { oscType: 'square',   pitchStart: 800, pitchEnd: 600, pitchDecay: 0.5, gain: 0.7, attackTime: 0.001, decayTime: 0.5 } }
+      ],
+      noise: [
+        { name: 'Tight HH',     params: { noiseDuration: 0.04, filterType: 'bandpass', filterFreq: 9000, filterQ: 1.5, gain: 0.45, attackTime: 0.001, decayTime: 0.04 } },
+        { name: 'Long HH',      params: { noiseDuration: 0.5,  filterType: 'bandpass', filterFreq: 8000, filterQ: 1.0, gain: 0.45, attackTime: 0.001, decayTime: 0.5 } },
+        { name: 'Crash Short',  params: { noiseDuration: 1.0,  filterType: 'highpass', filterFreq: 5000, filterQ: 0.5, gain: 0.6, attackTime: 0.01, decayTime: 1.0 } },
+        { name: 'Crash Long',   params: { noiseDuration: 3.0,  filterType: 'highpass', filterFreq: 4000, filterQ: 0.3, gain: 0.5, attackTime: 0.01, decayTime: 3.0 } },
+        { name: 'Tight Shaker', params: { noiseDuration: 0.05, filterType: 'highpass', filterFreq: 11000,filterQ: 1.0, gain: 0.35,attackTime: 0.001, decayTime: 0.05 } }
+      ],
+      hybrid: [
+        { name: 'Snare Tight',  params: { tonePitch: 220, toneMix: 0.5, toneDecay: 0.08, noiseFilterType: 'highpass', noiseFilterFreq: 1200, noiseMix: 0.9, noiseDecay: 0.15, gain: 1.0 } },
+        { name: 'Snare Fat',    params: { tonePitch: 180, toneMix: 0.9, toneDecay: 0.2,  noiseFilterType: 'highpass', noiseFilterFreq: 800,  noiseMix: 0.8, noiseDecay: 0.3,  gain: 1.0 } },
+        { name: 'Rim Hard',     params: { tonePitch: 1200,toneMix: 0.6, toneDecay: 0.015,noiseFilterType: 'highpass', noiseFilterFreq: 2000, noiseMix: 0.4, noiseDecay: 0.015,gain: 0.7 } }
+      ],
+      multi: [
+        { name: 'Clap Tight',   params: { bursts: 2, burstDelay: 0.01, noiseDuration: 0.04, filterType: 'bandpass', filterFreq: 2000, gain: 0.6, decay: 0.04 } },
+        { name: 'Clap Loose',   params: { bursts: 4, burstDelay: 0.025,noiseDuration: 0.06, filterType: 'bandpass', filterFreq: 1200, gain: 0.5, decay: 0.06 } }
+      ]
+    };
+
+    // User presets stored in localStorage: { type: [{ name, params }] }
+    let userPresets = {};
+
+    function loadUserPresets() {
+      try {
+        const saved = localStorage.getItem('drumMachine.userPresets');
+        if (saved) userPresets = JSON.parse(saved);
+      } catch(e) { userPresets = {}; }
+    }
+
+    function saveUserPresets() {
+      try {
+        localStorage.setItem('drumMachine.userPresets', JSON.stringify(userPresets));
+      } catch(e) { console.error('Failed to save user presets:', e); }
+    }
+
+    function populatePresetDropdown(voiceType) {
+      const sel = document.getElementById('preset-select');
+      sel.innerHTML = '<option value="">— Presets —</option>';
+
+      const builtin = BUILTIN_PRESETS[voiceType] || [];
+      if (builtin.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = 'Built-in';
+        builtin.forEach((p, i) => {
+          const opt = document.createElement('option');
+          opt.value = `builtin:${i}`;
+          opt.textContent = p.name;
+          grp.appendChild(opt);
+        });
+        sel.appendChild(grp);
+      }
+
+      const user = userPresets[voiceType] || [];
+      if (user.length) {
+        const grp = document.createElement('optgroup');
+        grp.label = 'My Presets';
+        user.forEach((p, i) => {
+          const opt = document.createElement('option');
+          opt.value = `user:${i}`;
+          opt.textContent = p.name;
+          grp.appendChild(opt);
+        });
+        sel.appendChild(grp);
+      }
+    }
+
+    function loadSelectedPreset() {
+      const sel = document.getElementById('preset-select');
+      const val = sel.value;
+      if (!val) return;
+
+      const instrument = INSTRUMENTS[state.ui.selectedTrack];
+      const [kind, idx] = val.split(':');
+      const presets = kind === 'builtin'
+        ? (BUILTIN_PRESETS[instrument.type] || [])
+        : (userPresets[instrument.type] || []);
+
+      const preset = presets[parseInt(idx)];
+      if (!preset) return;
+
+      state.ui.tempParams = JSON.parse(JSON.stringify(preset.params));
+      renderParamControls(instrument);
+    }
+
+    function saveCurrentAsPreset() {
+      const name = prompt('Preset name:');
+      if (!name || !name.trim()) return;
+
+      const instrument = INSTRUMENTS[state.ui.selectedTrack];
+      const type = instrument.type;
+
+      if (!userPresets[type]) userPresets[type] = [];
+      userPresets[type].push({ name: name.trim(), params: JSON.parse(JSON.stringify(state.ui.tempParams)) });
+
+      saveUserPresets();
+      populatePresetDropdown(type);
+    }
+
+    function openModal(trackIndex) {
+      state.ui.selectedTrack = trackIndex;
+      state.ui.modalOpen = true;
+
+      const instrument = INSTRUMENTS[trackIndex];
+
+      // Clone parameters to temp state
+      state.ui.tempParams = JSON.parse(JSON.stringify(instrument.params));
+
+      // Update modal title
+      document.getElementById('modal-title').textContent = `Edit: ${instrument.name}`;
+
+      // Render parameter controls
+      renderParamControls(instrument);
+      populatePresetDropdown(instrument.type);
+
+      // Show modal
+      document.getElementById('sound-designer-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      state.ui.modalOpen = false;
+      state.ui.selectedTrack = null;
+      state.ui.tempParams = null;
+
+      document.getElementById('sound-designer-modal').classList.remove('open');
+    }
+
+    function renderParamControls(instrument) {
+      const container = document.getElementById('param-controls');
+      container.innerHTML = '';
+
+      const params = state.ui.tempParams;
+
+      // Render controls based on parameter names
+      Object.keys(params).forEach(paramName => {
+        const row = document.createElement('div');
+        row.className = 'param-row';
+
+        const label = document.createElement('label');
+        label.textContent = formatParamLabel(paramName);
+        label.htmlFor = `param-${paramName}`;
+
+        // Determine control type based on value
+        const value = params[paramName];
+
+        if (typeof value === 'string') {
+          // Dropdown for string values (oscType, filterType)
+          const select = document.createElement('select');
+          select.id = `param-${paramName}`;
+
+          const options = getOptionsForParam(paramName);
+          options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.textContent = opt;
+            select.appendChild(option);
+          });
+          select.value = value;
+
+          select.addEventListener('change', e => {
+            state.ui.tempParams[paramName] = e.target.value;
+          });
+
+          row.appendChild(label);
+          row.appendChild(select);
+
+        } else {
+          // Range + number for numeric values
+          const range = document.createElement('input');
+          range.type = 'range';
+          range.id = `param-${paramName}`;
+
+          const limits = getParamLimits(paramName);
+          range.min = limits.min;
+          range.max = limits.max;
+          range.step = limits.step;
+          range.value = value;
+
+          const number = document.createElement('input');
+          number.type = 'number';
+          number.id = `param-${paramName}-num`;
+          number.min = limits.min;
+          number.max = limits.max;
+          number.step = limits.step;
+          number.value = value;
+
+          // Sync range and number
+          range.addEventListener('input', e => {
+            const val = parseFloat(e.target.value);
+            number.value = val;
+            state.ui.tempParams[paramName] = val;
+          });
+
+          number.addEventListener('input', e => {
+            const val = parseFloat(e.target.value);
+            range.value = val;
+            state.ui.tempParams[paramName] = val;
+          });
+
+          row.appendChild(label);
+          row.appendChild(range);
+          row.appendChild(number);
+        }
+
+        container.appendChild(row);
+      });
+    }
+
+    function formatParamLabel(paramName) {
+      // Convert camelCase to Title Case
+      return paramName
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .trim();
+    }
+
+    function getOptionsForParam(paramName) {
+      const optionSets = {
+        oscType: ['sine', 'square', 'triangle', 'sawtooth'],
+        filterType: ['lowpass', 'highpass', 'bandpass'],
+        noiseFilterType: ['lowpass', 'highpass', 'bandpass']
+      };
+      return optionSets[paramName] || [];
+    }
+
+    function getParamLimits(paramName) {
+      const limits = {
+        pitchStart: { min: 20, max: 2000, step: 1 },
+        pitchEnd: { min: 20, max: 2000, step: 1 },
+        pitchDecay: { min: 0.01, max: 2.0, step: 0.01 },
+        tonePitch: { min: 20, max: 2000, step: 1 },
+        gain: { min: 0, max: 2, step: 0.01 },
+        attackTime: { min: 0.001, max: 0.5, step: 0.001 },
+        decayTime: { min: 0.01, max: 2.0, step: 0.01 },
+        toneDecay: { min: 0.01, max: 2.0, step: 0.01 },
+        noiseDecay: { min: 0.01, max: 2.0, step: 0.01 },
+        noiseDuration: { min: 0.01, max: 3.0, step: 0.01 },
+        filterFreq: { min: 20, max: 20000, step: 10 },
+        noiseFilterFreq: { min: 20, max: 20000, step: 10 },
+        filterQ: { min: 0.1, max: 20, step: 0.1 },
+        toneMix: { min: 0, max: 2, step: 0.01 },
+        noiseMix: { min: 0, max: 2, step: 0.01 },
+        bursts: { min: 1, max: 10, step: 1 },
+        burstDelay: { min: 0.001, max: 0.1, step: 0.001 },
+        decay: { min: 0.01, max: 1.0, step: 0.01 }
+      };
+      return limits[paramName] || { min: 0, max: 1, step: 0.01 };
+    }
+
+    function previewSound() {
+      if (state.ui.selectedTrack === null) return;
+
+      initAudioContext();
+
+      const instrument = {
+        ...INSTRUMENTS[state.ui.selectedTrack],
+        params: state.ui.tempParams
+      };
+
+      triggerVoice(instrument, audioCtx.currentTime, 1.0);
+    }
+
+    function applyParams() {
+      if (state.ui.selectedTrack === null) return;
+
+      // Save temp params to instrument
+      INSTRUMENTS[state.ui.selectedTrack].params = JSON.parse(JSON.stringify(state.ui.tempParams));
+
+      autosave();
+      closeModal();
+    }
+
+    function bindModalControls() {
+      const modal = document.getElementById('sound-designer-modal');
+      const closeBtn = document.getElementById('modal-close');
+      const cancelBtn = document.getElementById('cancel-params-btn');
+      const applyBtn = document.getElementById('apply-params-btn');
+      const previewBtn = document.getElementById('preview-sound-btn');
+
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+      applyBtn.addEventListener('click', applyParams);
+      previewBtn.addEventListener('click', previewSound);
+      document.getElementById('load-preset-btn').addEventListener('click', loadSelectedPreset);
+      document.getElementById('save-preset-btn').addEventListener('click', saveCurrentAsPreset);
+
+      // Close on outside click
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      // Global keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        // Ignore when typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+        if (e.key === 'Escape' && state.ui.modalOpen) {
+          closeModal();
+        }
+
+        if (e.code === 'Space') {
+          e.preventDefault();
+          if (state.isPlaying) {
+            stopPlayback();
+          } else {
+            startPlayback();
+          }
+        }
+      });
+    }
+
+    // ============================================================================
+    // AUDIO ENGINE - VOICE SYNTHESIS
+    // ============================================================================
+
+    let audioCtx = null;
+
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    // Tone Voice Generator (oscillator-based sounds)
+    function triggerToneVoice(params, time, velocity = 1.0) {
+      const ctx = audioCtx;
+
+      // Create oscillator
+      const osc = ctx.createOscillator();
+      osc.type = params.oscType || 'sine';
+
+      // Pitch envelope
+      const startPitch = params.pitchStart * (velocity * 0.2 + 0.8);
+      const endPitch = params.pitchEnd;
+      osc.frequency.setValueAtTime(startPitch, time);
+      osc.frequency.exponentialRampToValueAtTime(
+        Math.max(endPitch, 1),
+        time + params.pitchDecay
+      );
+
+      // Amplitude envelope
+      const gainNode = ctx.createGain();
+      const peakGain = params.gain * velocity;
+      gainNode.gain.setValueAtTime(0, time);
+      gainNode.gain.linearRampToValueAtTime(peakGain, time + params.attackTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, time + params.attackTime + params.decayTime);
+
+      // Connect nodes
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      // Schedule
+      const duration = params.attackTime + params.decayTime;
+      osc.start(time);
+      osc.stop(time + duration);
+    }
+
+    // Noise Voice Generator (noise-based sounds)
+    function triggerNoiseVoice(params, time, velocity = 1.0) {
+      const ctx = audioCtx;
+
+      // Generate noise buffer
+      const duration = params.noiseDuration;
+      const bufferSize = ctx.sampleRate * duration;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      // Filter
+      const filter = ctx.createBiquadFilter();
+      filter.type = params.filterType;
+      filter.frequency.value = params.filterFreq;
+      filter.Q.value = params.filterQ;
+
+      // Amplitude envelope
+      const gainNode = ctx.createGain();
+      const peakGain = params.gain * velocity;
+      gainNode.gain.setValueAtTime(0, time);
+      gainNode.gain.linearRampToValueAtTime(peakGain, time + params.attackTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, time + params.attackTime + params.decayTime);
+
+      // Connect
+      noise.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      noise.start(time);
+    }
+
+    // Hybrid Voice Generator (tone + noise)
+    function triggerHybridVoice(params, time, velocity = 1.0) {
+      const ctx = audioCtx;
+
+      // Tone component
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = params.tonePitch;
+
+      const toneGain = ctx.createGain();
+      const tonePeak = params.gain * params.toneMix * velocity;
+      toneGain.gain.setValueAtTime(tonePeak, time);
+      toneGain.gain.exponentialRampToValueAtTime(0.01, time + params.toneDecay);
+
+      osc.connect(toneGain);
+      toneGain.connect(ctx.destination);
+
+      osc.start(time);
+      osc.stop(time + params.toneDecay);
+
+      // Noise component
+      const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * params.noiseDecay, ctx.sampleRate);
+      const noiseData = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseData.length; i++) {
+        noiseData[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = params.noiseFilterType;
+      noiseFilter.frequency.value = params.noiseFilterFreq;
+
+      const noiseGain = ctx.createGain();
+      const noisePeak = params.gain * params.noiseMix * velocity;
+      noiseGain.gain.setValueAtTime(noisePeak, time);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, time + params.noiseDecay);
+
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+
+      noise.start(time);
+    }
+
+    // Multi-burst Voice Generator (for claps)
+    function triggerMultiVoice(params, time, velocity = 1.0) {
+      const ctx = audioCtx;
+
+      for (let i = 0; i < params.bursts; i++) {
+        const burstTime = time + (i * params.burstDelay);
+
+        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * params.noiseDuration, ctx.sampleRate);
+        const noiseData = noiseBuffer.getChannelData(0);
+        for (let j = 0; j < noiseData.length; j++) {
+          noiseData[j] = Math.random() * 2 - 1;
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = params.filterType;
+        filter.frequency.value = params.filterFreq;
+
+        const gain = ctx.createGain();
+        const peakGain = params.gain * velocity;
+        gain.gain.setValueAtTime(peakGain, burstTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, burstTime + params.decay);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        noise.start(burstTime);
+      }
+    }
+
+    // Universal voice dispatcher
+    function triggerVoice(instrument, time, velocity = 1.0) {
+      if (!audioCtx) return;
+
+      const params = instrument.params;
+
+      switch(instrument.type) {
+        case 'tone':
+          return triggerToneVoice(params, time, velocity);
+        case 'noise':
+          return triggerNoiseVoice(params, time, velocity);
+        case 'hybrid':
+          return triggerHybridVoice(params, time, velocity);
+        case 'multi':
+          return triggerMultiVoice(params, time, velocity);
+      }
+    }
+
+    // ============================================================================
+    // SCHEDULER
+    // ============================================================================
+
+    const SCHEDULE_AHEAD_TIME = 0.1; // 100ms lookahead
+    const SCHEDULER_INTERVAL = 25;   // Check every 25ms
+
+    let schedulerTimer = null;
+    let nextNoteTime = 0;
+
+    function getStepDuration() {
+      return (60.0 / state.bpm) / 4; // 16th note duration
+    }
+
+    function scheduleNote(step, time) {
+      // Trigger all active notes at this step
+      for (let track = 0; track < 16; track++) {
+        if (state.pattern[track][step]) {
+          triggerVoice(INSTRUMENTS[track], time, 1.0);
+        }
+      }
+
+      // Update UI on main thread (sync with visual timing)
+      const delay = (time - audioCtx.currentTime) * 1000;
+      setTimeout(() => {
+        highlightStep(step);
+      }, delay);
+    }
+
+    function advanceStep() {
+      const stepDuration = getStepDuration();
+      nextNoteTime += stepDuration;
+      state.currentStep = (state.currentStep + 1) % 16;
+    }
+
+    function scheduler() {
+      while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD_TIME) {
+        scheduleNote(state.currentStep, nextNoteTime);
+        advanceStep();
+      }
+    }
+
+    function startPlayback() {
+      if (state.isPlaying) return;
+
+      initAudioContext();
+
+      state.isPlaying = true;
+      state.currentStep = 0;
+      nextNoteTime = audioCtx.currentTime;
+
+      schedulerTimer = setInterval(scheduler, SCHEDULER_INTERVAL);
+    }
+
+    function stopPlayback() {
+      if (!state.isPlaying) return;
+
+      state.isPlaying = false;
+      clearInterval(schedulerTimer);
+      schedulerTimer = null;
+      highlightStep(null); // Clear highlights
+    }
+
+    // ============================================================================
+    // MIDI EXPORT
+    // ============================================================================
+
+    const GM_NOTES = [
+      36, // Kick - Bass Drum 1
+      38, // Snare - Acoustic Snare
+      42, // HH closed - Closed Hi-Hat
+      46, // HH open - Open Hi-Hat
+      39, // Clap - Hand Clap
+      45, // Tom low - Low Tom
+      50, // Tom high - High Tom
+      37, // Rim - Side Stick
+      56, // Cowbell - Cowbell
+      49, // Crash - Crash Cymbal 1
+      51, // Ride - Ride Cymbal 1
+      70, // Shaker - Maracas
+      62, // Conga hi - Mute Hi Conga
+      64, // Conga lo - Low Conga
+      75, // Clave - Claves
+      76  // Wood blk - Hi Wood Block
+    ];
+
+    function exportMIDI() {
+      if (typeof MidiWriter === 'undefined') {
+        alert('MIDI library not loaded yet. Please try again.');
+        return;
+      }
+
+      const track = new MidiWriter.Track();
+
+      // Set tempo
+      track.setTempo(state.bpm);
+
+      // Build note events
+      const events = [];
+
+      for (let step = 0; step < 16; step++) {
+        for (let trackIdx = 0; trackIdx < 16; trackIdx++) {
+          if (state.pattern[trackIdx][step]) {
+            // Calculate velocity from instrument gain
+            const gain = INSTRUMENTS[trackIdx].params.gain || 1.0;
+            const velocity = Math.round(Math.min(127, Math.max(1, gain * 100)));
+
+            events.push({
+              step: step,
+              pitch: GM_NOTES[trackIdx],
+              velocity: velocity
+            });
+          }
+        }
+      }
+
+      // Sort by step (MIDI events must be in order)
+      events.sort((a, b) => a.step - b.step);
+
+      // Add events to track
+      let currentStep = 0;
+      events.forEach(event => {
+        // Add wait ticks if we've advanced steps
+        const stepDiff = event.step - currentStep;
+        if (stepDiff > 0) {
+          track.addEvent(new MidiWriter.NoteEvent({
+            pitch: event.pitch,
+            duration: '16',
+            velocity: event.velocity,
+            channel: 10,
+            wait: 'T' + (stepDiff * 128) // 128 ticks per 16th note
+          }));
+          currentStep = event.step;
+        } else {
+          // Same step, no wait
+          track.addEvent(new MidiWriter.NoteEvent({
+            pitch: event.pitch,
+            duration: '16',
+            velocity: event.velocity,
+            channel: 10
+          }));
+        }
+      });
+
+      // Create writer and download
+      const write = new MidiWriter.Writer(track);
+      const blob = new Blob([write.buildFile()], { type: 'audio/midi' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'drum-pattern.mid';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function importMIDI() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.mid,.midi';
+
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const midiData = MidiParser.parse(new Uint8Array(arrayBuffer));
+
+          // Convert MIDI to pattern
+          const pattern = midiToPattern(midiData);
+          state.pattern = pattern;
+          renderGrid();
+
+          alert('MIDI file imported successfully!');
+        } catch (error) {
+          console.error('MIDI import error:', error);
+          alert('Failed to import MIDI file. Please ensure it\'s a valid MIDI file.');
+        }
+      });
+
+      input.click();
+    }
+
+    function midiToPattern(midiData) {
+      const pattern = Array(16).fill().map(() => Array(16).fill(false));
+
+      // Find drum track (channel 10) or use first track
+      let drumTrack = null;
+      if (midiData.track) {
+        for (let track of midiData.track) {
+          if (track.event) {
+            // Check if any event is on channel 9 (channel 10 in 1-based)
+            const isDrumTrack = track.event.some(e => e.channel === 9);
+            if (isDrumTrack) {
+              drumTrack = track;
+              break;
+            }
+          }
+        }
+        // If no drum track found, use first track
+        if (!drumTrack && midiData.track.length > 0) {
+          drumTrack = midiData.track[0];
+        }
+      }
+
+      if (!drumTrack || !drumTrack.event) {
+        return pattern;
+      }
+
+      // Get timing info
+      const ppq = midiData.timeDivision || 480; // Pulses per quarter note
+      const ticksPerStep = ppq / 4; // For 16th notes
+
+      let currentTick = 0;
+
+      // Process note events
+      drumTrack.event.forEach(event => {
+        currentTick += event.deltaTime || 0;
+
+        // Note On events (type 9)
+        if (event.type === 9 && event.data && event.data.length >= 2) {
+          const note = event.data[0];
+          const velocity = event.data[1];
+
+          // Skip if velocity is 0 (note off)
+          if (velocity === 0) return;
+
+          // Find matching track by GM note
+          const trackIdx = INSTRUMENTS.findIndex(inst => inst.gmNote === note);
+          if (trackIdx === -1) return;
+
+          // Calculate step (0-15)
+          const step = Math.floor(currentTick / ticksPerStep) % 16;
+
+          pattern[trackIdx][step] = true;
+        }
+      });
+
+      return pattern;
+    }
+
+    // ============================================================================
+    // PERSISTENCE (localStorage)
+    // ============================================================================
+
+    const AUTOSAVE_DELAY = 1000; // 1 second debounce
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem('drumMachine.version', '1.0');
+        localStorage.setItem('drumMachine.pattern', JSON.stringify(state.pattern));
+        localStorage.setItem('drumMachine.bpm', state.bpm.toString());
+        localStorage.setItem('drumMachine.instruments', JSON.stringify(INSTRUMENTS.map(inst => ({
+          id: inst.id,
+          params: inst.params
+        }))));
+      } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const version = localStorage.getItem('drumMachine.version');
+        if (!version) return; // No saved data
+
+        const pattern = localStorage.getItem('drumMachine.pattern');
+        if (pattern) {
+          state.pattern = JSON.parse(pattern);
+        }
+
+        const bpm = localStorage.getItem('drumMachine.bpm');
+        if (bpm) {
+          state.bpm = parseInt(bpm);
+          document.getElementById('bpm-input').value = state.bpm;
+          document.getElementById('bpm-slider').value = state.bpm;
+        }
+
+        const instruments = localStorage.getItem('drumMachine.instruments');
+        if (instruments) {
+          const loaded = JSON.parse(instruments);
+          loaded.forEach((savedInst) => {
+            const inst = INSTRUMENTS.find(i => i.id === savedInst.id);
+            if (inst) {
+              inst.params = { ...inst.params, ...savedInst.params };
+            }
+          });
+        }
+
+        console.log('Loaded session from localStorage');
+      } catch (e) {
+        console.error('Failed to load from localStorage:', e);
+      }
+    }
+
+    function showSaveIndicator(msg = 'Saved') {
+      const el = document.getElementById('save-indicator');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('visible');
+      clearTimeout(showSaveIndicator.timer);
+      showSaveIndicator.timer = setTimeout(() => el.classList.remove('visible'), 2000);
+    }
+
+    function autosave() {
+      clearTimeout(autosave.timer);
+      autosave.timer = setTimeout(() => {
+        saveToLocalStorage();
+        showSaveIndicator();
+      }, AUTOSAVE_DELAY);
+    }
+
+    // ============================================================================
+    // INITIALIZATION
+    // ============================================================================
+
+    loadFromLocalStorage();
+    loadUserPresets();
+    renderGrid();
+    bindControls();
+    bindModalControls();
+  </script>
+</body>
+</html>
