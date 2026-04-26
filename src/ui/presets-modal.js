@@ -1,20 +1,18 @@
-import { SONG_PRESETS } from '../song-presets.js';
+import { SONG_PRESET_CATEGORIES } from '../song-presets.js';
 import { state, loadPatternById } from '../state.js';
 import { autosave } from '../storage.js';
 
 let _callbacks = null;
+let _activeCategoryIndex = 0;
 
 export function initPresetsModal(callbacks) {
   _callbacks = callbacks;
 
   const modal = document.getElementById('presets-modal');
-  const closeBtn = document.getElementById('presets-modal-close');
+  document.getElementById('presets-modal-close')?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
-  closeBtn?.addEventListener('click', closeModal);
-  modal?.addEventListener('click', e => {
-    if (e.target === modal) closeModal();
-  });
-
+  _renderTabs();
   _renderCards();
 }
 
@@ -26,17 +24,38 @@ function closeModal() {
   document.getElementById('presets-modal')?.classList.remove('open');
 }
 
+function _renderTabs() {
+  const tabBar = document.getElementById('presets-tabs');
+  if (!tabBar) return;
+  tabBar.innerHTML = '';
+
+  SONG_PRESET_CATEGORIES.forEach((cat, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-tab' + (i === _activeCategoryIndex ? ' active' : '');
+    btn.textContent = cat.name;
+    btn.addEventListener('click', () => {
+      _activeCategoryIndex = i;
+      tabBar.querySelectorAll('.preset-tab').forEach((t, j) =>
+        t.classList.toggle('active', j === i)
+      );
+      _renderCards();
+    });
+    tabBar.appendChild(btn);
+  });
+}
+
 function _renderCards() {
   const grid = document.getElementById('presets-grid');
   if (!grid) return;
   grid.innerHTML = '';
 
-  SONG_PRESETS.forEach((preset, i) => {
+  const category = SONG_PRESET_CATEGORIES[_activeCategoryIndex];
+  category.presets.forEach(preset => {
     const card = document.createElement('button');
     card.className = 'preset-card';
     card.innerHTML = `
       <span class="preset-card-name">${preset.name}</span>
-      <span class="preset-card-bpm">${preset.bpm} BPM</span>
+      <span class="preset-card-bpm">${preset.bpm} BPM${preset.patterns.A.swing ? ` · ${preset.patterns.A.swing}% swing` : ''}</span>
       <span class="preset-card-desc">${preset.description}</span>
     `;
     card.addEventListener('click', () => _loadPreset(preset));
@@ -45,13 +64,6 @@ function _renderCards() {
 }
 
 function _loadPreset(preset) {
-  const hasContent = Object.values(state.patterns).some(bundle =>
-    bundle.pattern.some(row => row.some(Boolean))
-  );
-
-  if (hasContent && !confirm(`Load "${preset.name}"? This will replace all current patterns.`)) return;
-
-  // Deep-clone preset patterns so edits don't mutate the preset definitions
   state.patterns = {};
   Object.entries(preset.patterns).forEach(([id, bundle]) => {
     state.patterns[id] = {

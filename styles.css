@@ -697,18 +697,43 @@ button.danger:hover { background: #ff4757; color: white; }
 
 /* ── Starters modal ── */
 .presets-modal-content {
-  max-width: 700px;
+  max-width: 720px;
 }
 
-.presets-hint {
+.preset-tabs {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--color-border);
+  scrollbar-width: none;
+}
+
+.preset-tabs::-webkit-scrollbar { display: none; }
+
+.preset-tab {
+  flex-shrink: 0;
+  padding: 10px 16px;
   font-size: 13px;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
   color: var(--color-text-dim);
-  margin-bottom: 16px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.preset-tab:hover { color: var(--color-text); }
+
+.preset-tab.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
 }
 
 .presets-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
@@ -716,12 +741,12 @@ button.danger:hover { background: #ff4757; color: white; }
   background: var(--color-bg);
   border: 1px solid var(--color-border);
   border-radius: 6px;
-  padding: 14px 12px;
+  padding: 16px 14px;
   cursor: pointer;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   transition: border-color 0.15s, background 0.15s;
   color: var(--color-text);
 }
@@ -732,7 +757,7 @@ button.danger:hover { background: #ff4757; color: white; }
 }
 
 .preset-card-name {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -743,16 +768,10 @@ button.danger:hover { background: #ff4757; color: white; }
 }
 
 .preset-card-desc {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-dim);
   line-height: 1.4;
   margin-top: 2px;
-}
-
-@media (max-width: 640px) {
-  .presets-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* ── Pattern bar ── */
