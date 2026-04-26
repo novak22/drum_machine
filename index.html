@@ -21,10 +21,20 @@
       </div>
     </div>
 
-    <div class="sequencer" id="sequencer"></div>
+    <div class="sequencer-area">
+      <div class="sequencer" id="sequencer"></div>
+      <div class="kit-library" id="kit-library">
+        <div class="library-header">
+          <span>Kit Library</span>
+          <button id="close-library-btn" class="close-btn" title="Close">&times;</button>
+        </div>
+        <div id="library-items" class="library-items"></div>
+      </div>
+    </div>
 
     <div class="footer">
       <div class="footer-left">
+        <button id="edit-kit-btn" class="secondary">Edit Kit</button>
         <button id="clear-btn" class="secondary">Clear</button>
         <button id="reset-btn" class="secondary danger">Reset All</button>
       </div>

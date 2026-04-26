@@ -119,25 +119,144 @@ button.secondary { background: #555; }
 button.danger       { background: #333; color: #ff6b6b; }
 button.danger:hover { background: #ff4757; color: white; }
 
-/* ── Sequencer grid ── */
+/* ── Sequencer area (grid + library) ── */
+.sequencer-area {
+  display: flex;
+  align-items: stretch;
+}
+
 .sequencer {
+  flex: 1;
+  min-width: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 20px;
   user-select: none;
 }
 
-/* Beat header */
-.beat-header {
-  display: grid;
-  gap: 4px;
-  margin-bottom: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--color-border);
+/* Edit-kit mode */
+.sequencer.edit-mode .track { cursor: grab; }
+.sequencer.edit-mode .track-label { cursor: pointer; }
+.sequencer.edit-mode .step { cursor: default; }
+
+/* Drag indicators */
+.track.dragging { opacity: 0.4; }
+.track.drag-over-top    { box-shadow: 0 -2px 0 var(--color-accent); }
+.track.drag-over-bottom { box-shadow: 0 2px 0 var(--color-accent); }
+
+/* Kit library drawer */
+.kit-library {
+  width: 0;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-left: none;
+  transition: width 0.18s ease-out;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
-.beat-header-spacer {
-  /* matches .track-label width */
+.kit-library.open { width: 210px; }
+
+.library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+}
+
+.library-items {
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+}
+
+.library-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.library-item:hover { background: rgba(255,255,255,0.06); }
+
+.lib-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--item-color, #888);
+}
+
+.lib-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.lib-type {
+  font-size: 10px;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lib-add-btn {
+  padding: 2px 7px;
+  font-size: 14px;
+  font-weight: 700;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text-dim);
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.lib-add-btn:hover {
+  background: var(--item-color, var(--color-accent));
+  border-color: var(--item-color, var(--color-accent));
+  color: #000;
+}
+
+.lib-empty {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  text-align: center;
+  padding: 16px 8px;
+}
+
+/* Beat header */
+.beat-header {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+}
+
+.beat-label-spacer  { width: 80px;  min-width: 80px;  flex-shrink: 0; }
+.beat-mixer-spacer  { width: 100px; min-width: 100px; flex-shrink: 0; }
+.beat-fx-spacer     { width: 70px;  min-width: 70px;  flex-shrink: 0; }
+
+.beat-cells {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
 }
 
 .beat-cell {
@@ -151,27 +270,154 @@ button.danger:hover { background: #ff4757; color: white; }
 .beat-cell.bar-start { color: var(--color-text); font-weight: 600; }
 .beat-cell.bar-odd   { background: rgba(255, 255, 255, 0.04); }
 
+/* Track rows */
 .track {
-  display: grid;
-  grid-template-columns: 100px repeat(16, 1fr);
-  gap: 4px;
-  margin-bottom: 8px;
-  align-items: center;
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: flex-start;
+  transition: opacity 0.15s;
 }
 
-.track:last-child { margin-bottom: 0; }
+.track:last-child  { margin-bottom: 0; }
+.track.is-dimmed   { opacity: 0.35; }
 
 .track-label {
-  font-size: 13px;
+  width: 80px;
+  min-width: 80px;
+  flex-shrink: 0;
+  font-size: 12px;
   font-weight: 500;
-  padding-right: 10px;
-  text-align: right;
   cursor: pointer;
+  align-self: center;
+  padding-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
 }
 
-.track-label:hover {
+.track-label:hover .label-text {
   color: var(--color-accent);
   text-decoration: underline;
+}
+
+.label-text {
+  flex: 1;
+  text-align: right;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding-right: 4px;
+}
+
+.remove-btn {
+  display: none;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-dim);
+  font-size: 15px;
+  padding: 0 1px;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.remove-btn:hover { color: #ff4757; opacity: 1; }
+
+.sequencer.edit-mode .remove-btn { display: flex; align-items: center; }
+
+/* Add instrument row */
+.add-track-row {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: 4px;
+  text-align: center;
+  color: var(--color-text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.add-track-row:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Edit Kit button active state */
+#edit-kit-btn.active {
+  background: var(--color-accent);
+  color: white;
+}
+
+/* Mixer strip */
+.mixer-strip {
+  width: 100px;
+  min-width: 100px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 4px;
+}
+
+.ms-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.mute-btn,
+.solo-btn {
+  flex: 1;
+  padding: 3px 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: #2e2e2e;
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.mute-btn:hover { border-color: var(--track-color, var(--color-accent)); }
+.solo-btn:hover { border-color: #ffd93d; }
+
+.mute-btn.active {
+  background: var(--track-color, var(--color-accent));
+  border-color: var(--track-color, var(--color-accent));
+  color: #000;
+}
+
+.solo-btn.active {
+  background: #ffd93d;
+  border-color: #ffd93d;
+  color: #000;
+}
+
+.vol-slider {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  accent-color: var(--color-accent);
+}
+
+/* Steps column */
+.steps-column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.step-row,
+.vel-row {
+  display: grid;
+  gap: 4px;
 }
 
 .step {
@@ -188,8 +434,8 @@ button.danger:hover { background: #ff4757; color: white; }
 .step.bar-start { border-left: 2px solid rgba(255, 255, 255, 0.22); }
 .step.bar-odd   { background: rgba(255, 255, 255, 0.03); }
 
-.step:hover { border-color: var(--color-text-dim); }
-.step.active { border-color: currentColor; }
+.step:hover     { border-color: var(--color-text-dim); }
+.step.active    { border-color: currentColor; }
 
 .step.current::after {
   content: '';
@@ -198,6 +444,52 @@ button.danger:hover { background: #ff4757; color: white; }
   border: 3px solid white;
   border-radius: 6px;
   pointer-events: none;
+}
+
+/* Velocity strip */
+.vel-cell {
+  position: relative;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  cursor: ns-resize;
+  overflow: hidden;
+}
+
+.vel-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-height: 1px;
+  border-radius: 1px 1px 0 0;
+}
+
+/* FX strip */
+.fx-strip {
+  width: 70px;
+  min-width: 70px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.fx-label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+}
+
+.fx-slider {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+  accent-color: #ff9500;
 }
 
 /* Step count chips */
@@ -405,11 +697,8 @@ button.danger:hover { background: #ff4757; color: white; }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .step { min-width: 30px; }
-
-  .track {
-    grid-template-columns: 80px repeat(16, 1fr);
-  }
-
-  .track-label { font-size: 11px; }
+  .track-label   { font-size: 11px; width: 60px; min-width: 60px; }
+  .mixer-strip   { width: 80px; min-width: 80px; }
+  .beat-label-spacer  { width: 60px; min-width: 60px; }
+  .beat-mixer-spacer  { width: 86px; min-width: 86px; }
 }

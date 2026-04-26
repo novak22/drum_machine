@@ -1,4 +1,4 @@
-export function triggerNoiseVoice(ctx, params, time, velocity = 1.0) {
+export function triggerNoiseVoice(ctx, params, time, velocity = 1.0, dest = ctx.destination) {
   const bufferSize = Math.ceil(ctx.sampleRate * params.noiseDuration);
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const data = buffer.getChannelData(0);
@@ -22,7 +22,7 @@ export function triggerNoiseVoice(ctx, params, time, velocity = 1.0) {
 
   noise.connect(filter);
   filter.connect(gainNode);
-  gainNode.connect(ctx.destination);
+  gainNode.connect(dest);
 
   noise.start(time);
 }

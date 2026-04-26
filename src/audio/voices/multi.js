@@ -1,4 +1,4 @@
-export function triggerMultiVoice(ctx, params, time, velocity = 1.0) {
+export function triggerMultiVoice(ctx, params, time, velocity = 1.0, dest = ctx.destination) {
   for (let i = 0; i < params.bursts; i++) {
     const burstTime = time + i * params.burstDelay;
     const bufferSize = Math.ceil(ctx.sampleRate * params.noiseDuration);
@@ -22,7 +22,7 @@ export function triggerMultiVoice(ctx, params, time, velocity = 1.0) {
 
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(dest);
     noise.start(burstTime);
   }
 }

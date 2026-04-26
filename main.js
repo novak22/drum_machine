@@ -1,4 +1,4 @@
-import { state, INSTRUMENTS, resetInstruments } from './src/state.js';
+import { state, INSTRUMENTS, resetInstruments, resetTracks, resetActiveTrackIndices } from './src/state.js';
 import {
   initStorage,
   loadFromLocalStorage,
@@ -6,9 +6,10 @@ import {
   autosave,
   clearAll,
 } from './src/storage.js';
-import { initGrid, renderGrid } from './src/ui/grid.js';
+import { initGrid, renderGrid, toggleEditMode } from './src/ui/grid.js';
 import { bindControls } from './src/ui/controls.js';
 import { initSoundDesigner, openModal } from './src/ui/sound-designer.js';
+import { resetTrackBuses } from './src/audio/engine.js';
 import { exportMIDI } from './src/midi/exporter.js';
 import { importMIDI } from './src/midi/importer.js';
 
@@ -48,6 +49,9 @@ bindControls({
     state.pattern = Array(16).fill(null).map(() => Array(32).fill(false));
     state.stepCount = 16;
     resetInstruments();
+    resetTracks();
+    resetActiveTrackIndices();
+    resetTrackBuses();
     clearAll();
     saveToLocalStorage();
     renderGrid();
@@ -69,8 +73,8 @@ bindControls({
   },
   onStepCountChange(newCount) {
     if (newCount < state.stepCount) {
-      const hasHiddenSteps = INSTRUMENTS.some((_, track) =>
-        state.pattern[track].slice(newCount).some(Boolean)
+      const hasHiddenSteps = state.activeTrackIndices.some(id =>
+        state.pattern[id].slice(newCount).some(Boolean)
       );
       if (hasHiddenSteps && !confirm(`Steps beyond ${newCount} will be hidden (not deleted). Continue?`)) return;
     }
@@ -78,4 +82,5 @@ bindControls({
     renderGrid();
     autosave();
   },
+  onEditKitToggle: toggleEditMode,
 });

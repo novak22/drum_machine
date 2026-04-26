@@ -3,7 +3,7 @@ import { autosave } from '../storage.js';
 import { startPlayback, stopPlayback } from '../audio/scheduler.js';
 import { highlightStep, renderGrid } from './grid.js';
 
-export function bindControls({ onClear, onReset, onImport, onExport, onStepCountChange }) {
+export function bindControls({ onClear, onReset, onImport, onExport, onStepCountChange, onEditKitToggle }) {
   const bpmInput  = document.getElementById('bpm-input');
   const bpmSlider = document.getElementById('bpm-slider');
 
@@ -29,6 +29,7 @@ export function bindControls({ onClear, onReset, onImport, onExport, onStepCount
     highlightStep(null);
   });
 
+  document.getElementById('edit-kit-btn').addEventListener('click', onEditKitToggle);
   document.getElementById('clear-btn').addEventListener('click', onClear);
   document.getElementById('reset-btn').addEventListener('click', onReset);
   document.getElementById('import-btn').addEventListener('click', onImport);

@@ -1,4 +1,4 @@
-export function triggerHybridVoice(ctx, params, time, velocity = 1.0) {
+export function triggerHybridVoice(ctx, params, time, velocity = 1.0, dest = ctx.destination) {
   // Tone component
   const osc = ctx.createOscillator();
   osc.type = 'triangle';
@@ -10,7 +10,7 @@ export function triggerHybridVoice(ctx, params, time, velocity = 1.0) {
   toneGain.gain.exponentialRampToValueAtTime(0.01, time + params.toneDecay);
 
   osc.connect(toneGain);
-  toneGain.connect(ctx.destination);
+  toneGain.connect(dest);
   osc.start(time);
   osc.stop(time + params.toneDecay);
 
@@ -36,6 +36,6 @@ export function triggerHybridVoice(ctx, params, time, velocity = 1.0) {
 
   noise.connect(noiseFilter);
   noiseFilter.connect(noiseGain);
-  noiseGain.connect(ctx.destination);
+  noiseGain.connect(dest);
   noise.start(time);
 }

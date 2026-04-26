@@ -1,4 +1,4 @@
-export function triggerToneVoice(ctx, params, time, velocity = 1.0) {
+export function triggerToneVoice(ctx, params, time, velocity = 1.0, dest = ctx.destination) {
   const osc = ctx.createOscillator();
   osc.type = params.oscType || 'sine';
 
@@ -16,7 +16,7 @@ export function triggerToneVoice(ctx, params, time, velocity = 1.0) {
   gainNode.gain.exponentialRampToValueAtTime(0.01, time + params.attackTime + params.decayTime);
 
   osc.connect(gainNode);
-  gainNode.connect(ctx.destination);
+  gainNode.connect(dest);
 
   osc.start(time);
   osc.stop(time + params.attackTime + params.decayTime);

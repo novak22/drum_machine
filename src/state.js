@@ -11,13 +11,20 @@ function makeDefaultPattern() {
 export const state = {
   pattern: makeDefaultPattern(),
   stepCount: 16,
+  // Ordered list of instrumentIds currently shown in the grid (default 6-track kit)
+  activeTrackIndices: [0, 1, 2, 4, 5, 6],
   bpm: 120,
   isPlaying: false,
   currentStep: 0,
+  tracks: Array(16).fill(null).map(() => ({
+    muted: false, solo: false, volume: 1.0, fxSend: 0.0,
+  })),
+  velocities: Array(16).fill(null).map(() => Array(32).fill(0.8)),
   ui: {
     selectedTrack: null,
     modalOpen: false,
     tempParams: null,
+    editKitMode: false,
   },
 };
 
@@ -30,4 +37,16 @@ export function resetInstruments() {
   INSTRUMENTS.forEach((inst, i) => {
     inst.params = structuredClone(DEFAULT_PARAMS[DEFAULT_PARAMS_ORDER[i]]);
   });
+}
+
+export function resetTracks() {
+  state.tracks.forEach(t => {
+    t.muted = false; t.solo = false; t.volume = 1.0; t.fxSend = 0.0;
+  });
+  state.velocities.forEach(row => row.fill(0.8));
+}
+
+export function resetActiveTrackIndices() {
+  state.activeTrackIndices = [0, 1, 2, 4, 5, 6];
+  state.ui.editKitMode = false;
 }

@@ -73,6 +73,12 @@ export const PARAM_OPTIONS = {
   noiseFilterType: ['lowpass', 'highpass', 'bandpass'],
 };
 
+export const TRACK_COLORS = [
+  '#ff6b6b', '#4ecdc4', '#ffe66d', '#ffb347', '#95e1d3',
+  '#c77dff', '#9d4edd', '#06ffa5', '#ffd93d', '#ff6b9d',
+  '#6bcf7f', '#c9ada7', '#ff9b85', '#ff8066', '#a8dadc', '#8b5a3c',
+];
+
 export const PARAM_LIMITS = {
   pitchStart:      { min: 20,    max: 2000,  step: 1 },
   pitchEnd:        { min: 20,    max: 2000,  step: 1 },

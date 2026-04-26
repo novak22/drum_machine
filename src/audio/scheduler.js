@@ -14,10 +14,14 @@ function getStepDuration() {
 
 function scheduleNote(step, time) {
   const ctx = getAudioContext();
+  const anySolo = state.activeTrackIndices.some(id => state.tracks[id].solo);
 
-  for (let track = 0; track < 16; track++) {
-    if (state.pattern[track][step]) {
-      triggerVoice(INSTRUMENTS[track], time, 1.0);
+  for (const id of state.activeTrackIndices) {
+    const t = state.tracks[id];
+    if (t.muted) continue;
+    if (anySolo && !t.solo) continue;
+    if (state.pattern[id][step]) {
+      triggerVoice(INSTRUMENTS[id], time, state.velocities[id][step]);
     }
   }
 
