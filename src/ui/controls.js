@@ -3,7 +3,7 @@ import { autosave } from '../storage.js';
 import { startPlayback, stopPlayback } from '../audio/scheduler.js';
 import { highlightStep, renderGrid } from './grid.js';
 
-export function bindControls({ onClear, onReset, onImport, onExport, onStepCountChange, onEditKitToggle }) {
+export function bindControls({ onClear, onReset, onImport, onExport, onStepCountChange, onEditKitToggle, onRender }) {
   const bpmInput  = document.getElementById('bpm-input');
   const bpmSlider = document.getElementById('bpm-slider');
 
@@ -21,7 +21,7 @@ export function bindControls({ onClear, onReset, onImport, onExport, onStepCount
   });
 
   document.getElementById('play-btn').addEventListener('click', () => {
-    startPlayback(highlightStep);
+    startPlayback(highlightStep, onRender);
   });
 
   document.getElementById('stop-btn').addEventListener('click', () => {
@@ -46,7 +46,7 @@ export function bindControls({ onClear, onReset, onImport, onExport, onStepCount
   });
 
   document.getElementById('mob-play-btn')?.addEventListener('click', () => {
-    startPlayback(highlightStep);
+    startPlayback(highlightStep, onRender);
   });
   document.getElementById('mob-stop-btn')?.addEventListener('click', () => {
     stopPlayback();
@@ -62,7 +62,7 @@ export function bindControls({ onClear, onReset, onImport, onExport, onStepCount
       stopPlayback();
       highlightStep(null);
     } else {
-      startPlayback(highlightStep);
+      startPlayback(highlightStep, onRender);
     }
   });
 }

@@ -1,4 +1,4 @@
-import { state, INSTRUMENTS, resetInstruments, resetTracks, resetActiveTrackIndices } from './src/state.js';
+import { state, INSTRUMENTS, resetInstruments, resetAllPatterns } from './src/state.js';
 import {
   initStorage,
   loadFromLocalStorage,
@@ -8,8 +8,9 @@ import {
 } from './src/storage.js';
 import { initGrid, renderGrid, toggleEditMode } from './src/ui/grid.js';
 import { bindControls } from './src/ui/controls.js';
+import { initPatterns, renderPatternBank, renderSongChain } from './src/ui/patterns.js';
 import { initSoundDesigner, openModal } from './src/ui/sound-designer.js';
-import { resetTrackBuses } from './src/audio/engine.js';
+import { resetTrackBuses, syncTrackBuses } from './src/audio/engine.js';
 import { exportMIDI } from './src/midi/exporter.js';
 import { importMIDI } from './src/midi/importer.js';
 
@@ -37,24 +38,41 @@ initGrid((track) => openModal(track));
 renderGrid();
 initSoundDesigner();
 
+// Initialize pattern bank
+initPatterns();
+renderPatternBank();
+renderSongChain();
+
+// onRender: called by the scheduler when the active pattern changes mid-playback
+function onRender() {
+  syncTrackBuses();
+  renderGrid();
+  renderPatternBank();
+  renderSongChain();
+}
+
 // Bind transport / footer controls
 bindControls({
+  onRender,
   onClear() {
-    state.pattern = Array(16).fill(null).map(() => Array(32).fill(false));
+    state.pattern    = Array(16).fill(null).map(() => Array(32).fill(false));
+    state.velocities = Array(16).fill(null).map(() => Array(32).fill(0.8));
     renderGrid();
     autosave();
   },
   onReset() {
-    if (!confirm('Reset everything to defaults? This will clear the pattern and restore all sound settings.')) return;
-    state.pattern = Array(16).fill(null).map(() => Array(32).fill(false));
-    state.stepCount = 16;
+    if (!confirm('Reset everything to defaults? This will clear all patterns and restore all sound settings.')) return;
+    resetAllPatterns();
+    state.bpm = 120;
     resetInstruments();
-    resetTracks();
-    resetActiveTrackIndices();
     resetTrackBuses();
     clearAll();
     saveToLocalStorage();
+    document.getElementById('bpm-input').value  = 120;
+    document.getElementById('bpm-slider').value = 120;
     renderGrid();
+    renderPatternBank();
+    renderSongChain();
     showSaveIndicator('Reset complete');
   },
   onImport() {

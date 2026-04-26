@@ -76,6 +76,18 @@ export function resetTrackBuses() {
   trackFxSends.forEach(send => { send.gain.value = 0.0; });
 }
 
+export function syncTrackBuses() {
+  const ctx = getAudioContext();
+  trackGains.forEach((gain, id) => {
+    const t = state.tracks[id];
+    if (t) gain.gain.setTargetAtTime(t.volume, ctx.currentTime, 0.01);
+  });
+  trackFxSends.forEach((send, id) => {
+    const t = state.tracks[id];
+    if (t) send.gain.setTargetAtTime(t.fxSend, ctx.currentTime, 0.01);
+  });
+}
+
 export function triggerVoice(instrument, time, velocity = 1.0) {
   const ctx = getAudioContext();
   const dest = getOrCreateTrackBus(instrument.id);
