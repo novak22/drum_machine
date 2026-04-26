@@ -45,6 +45,14 @@ export function bindControls({ onClear, onReset, onImport, onExport, onStepCount
     });
   });
 
+  document.getElementById('mob-play-btn')?.addEventListener('click', () => {
+    startPlayback(highlightStep);
+  });
+  document.getElementById('mob-stop-btn')?.addEventListener('click', () => {
+    stopPlayback();
+    highlightStep(null);
+  });
+
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (e.code !== 'Space') return;

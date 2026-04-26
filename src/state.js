@@ -25,6 +25,7 @@ export const state = {
     modalOpen: false,
     tempParams: null,
     editKitMode: false,
+    mobileBar: 0,
   },
 };
 

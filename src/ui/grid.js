@@ -8,11 +8,22 @@ let _painting = false;
 let _paintValue = false;
 let _velDrag = null; // { id, step, startY, startVel }
 
+function isMobile() { return window.innerWidth <= 640; }
+
 export function initGrid(onLabelClick) {
   _onLabelClick = onLabelClick;
 
   document.getElementById('close-library-btn')?.addEventListener('click', () => {
     if (state.ui.editKitMode) toggleEditMode();
+  });
+
+  let _prevMobile = isMobile();
+  window.addEventListener('resize', () => {
+    const nowMobile = isMobile();
+    if (nowMobile !== _prevMobile) {
+      _prevMobile = nowMobile;
+      renderGrid();
+    }
   });
 
   document.addEventListener('mouseup', () => {
@@ -38,23 +49,36 @@ export function renderGrid() {
   sequencer.innerHTML = '';
 
   const { stepCount } = state;
-  const cols = `repeat(${stepCount}, 1fr)`;
+  const mobile = isMobile();
+  const totalBars = Math.ceil(stepCount / 4);
 
-  sequencer.appendChild(buildBeatHeader(stepCount, cols));
+  if (state.ui.mobileBar >= totalBars) state.ui.mobileBar = 0;
+
+  const startStep = mobile ? state.ui.mobileBar * 4 : 0;
+  const count = mobile ? Math.min(4, stepCount - startStep) : stepCount;
+  const cols = `repeat(${count}, 1fr)`;
+
+  if (!mobile) {
+    sequencer.appendChild(buildBeatHeader(stepCount, cols));
+  }
 
   for (const instrumentId of state.activeTrackIndices) {
-    sequencer.appendChild(buildTrackRow(instrumentId, stepCount, cols));
+    sequencer.appendChild(buildTrackRow(instrumentId, count, cols, startStep, mobile));
   }
 
   sequencer.appendChild(buildAddTrackRow());
 
-  // Restore edit-mode state after DOM rebuild
   if (state.ui.editKitMode) {
     sequencer.classList.add('edit-mode');
     sequencer.querySelectorAll('.track').forEach(t => { t.draggable = true; });
   }
 
   syncAllTrackVisuals();
+
+  if (mobile) {
+    renderMobileTabs(totalBars);
+    renderPageDots(totalBars);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,7 +119,7 @@ function buildBeatHeader(stepCount, cols) {
   return header;
 }
 
-function buildTrackRow(instrumentId, stepCount, cols) {
+function buildTrackRow(instrumentId, count, cols, startStep, mobile) {
   const t = state.tracks[instrumentId];
   const color = TRACK_COLORS[instrumentId];
 
@@ -131,7 +155,7 @@ function buildTrackRow(instrumentId, stepCount, cols) {
   row.appendChild(label);
 
   row.appendChild(buildMixerStrip(instrumentId, t));
-  row.appendChild(buildStepsColumn(instrumentId, stepCount, cols, color));
+  row.appendChild(buildStepsColumn(instrumentId, count, cols, color, startStep, mobile));
   row.appendChild(buildFxStrip(instrumentId, t));
 
   attachDragHandlers(row, instrumentId);
@@ -187,7 +211,7 @@ function buildMixerStrip(id, t) {
   return strip;
 }
 
-function buildStepsColumn(id, stepCount, cols, color) {
+function buildStepsColumn(id, count, cols, color, startStep = 0, mobile = false) {
   const col = document.createElement('div');
   col.className = 'steps-column';
 
@@ -195,11 +219,12 @@ function buildStepsColumn(id, stepCount, cols, color) {
   stepRow.className = 'step-row';
   stepRow.style.gridTemplateColumns = cols;
 
-  for (let step = 0; step < stepCount; step++) {
+  for (let i = 0; i < count; i++) {
+    const step = startStep + i;
     const bar = Math.floor(step / 4);
     const btn = document.createElement('button');
     btn.className = 'step' +
-      (step > 0 && step % 4 === 0 ? ' bar-start' : '') +
+      (!mobile && step > 0 && step % 4 === 0 ? ' bar-start' : '') +
       (bar % 2 === 1 ? ' bar-odd' : '');
     btn.dataset.track = id;
     btn.dataset.step = step;
@@ -222,7 +247,8 @@ function buildStepsColumn(id, stepCount, cols, color) {
   velRow.className = 'vel-row';
   velRow.style.gridTemplateColumns = cols;
 
-  for (let step = 0; step < stepCount; step++) {
+  for (let i = 0; i < count; i++) {
+    const step = startStep + i;
     const cell = document.createElement('div');
     cell.className = 'vel-cell';
     cell.dataset.track = id;
@@ -421,6 +447,37 @@ export function renderLibrary() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Mobile bar navigation
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderMobileTabs(totalBars) {
+  const container = document.getElementById('mobile-bar-tabs');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let b = 0; b < totalBars; b++) {
+    const btn = document.createElement('button');
+    btn.className = 'bar-tab' + (b === state.ui.mobileBar ? ' active' : '');
+    btn.textContent = `Bar ${b + 1}`;
+    btn.addEventListener('click', () => {
+      state.ui.mobileBar = b;
+      renderGrid();
+    });
+    container.appendChild(btn);
+  }
+}
+
+function renderPageDots(totalBars) {
+  const container = document.getElementById('page-dots');
+  if (!container) return;
+  container.innerHTML = '';
+  for (let b = 0; b < totalBars; b++) {
+    const dot = document.createElement('div');
+    dot.className = 'page-dot' + (b === state.ui.mobileBar ? ' active' : '');
+    container.appendChild(dot);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Step helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -463,6 +520,13 @@ export function toggleStep(id, step) {
 }
 
 export function highlightStep(step) {
+  if (step !== null && isMobile()) {
+    const bar = Math.floor(step / 4);
+    if (bar !== state.ui.mobileBar) {
+      state.ui.mobileBar = bar;
+      renderGrid();
+    }
+  }
   document.querySelectorAll('.step.current').forEach(el => el.classList.remove('current'));
   if (step !== null) {
     document.querySelectorAll(`.step[data-step="${step}"]`).forEach(el => el.classList.add('current'));
