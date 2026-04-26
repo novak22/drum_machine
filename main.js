@@ -13,6 +13,7 @@ import { initSoundDesigner, openModal } from './src/ui/sound-designer.js';
 import { resetTrackBuses, syncTrackBuses } from './src/audio/engine.js';
 import { exportMIDI } from './src/midi/exporter.js';
 import { importMIDI } from './src/midi/importer.js';
+import { initPresetsModal, openPresetsModal } from './src/ui/presets-modal.js';
 
 function showSaveIndicator(msg = 'Saved') {
   const el = document.getElementById('save-indicator');
@@ -42,6 +43,21 @@ initSoundDesigner();
 initPatterns();
 renderPatternBank();
 renderSongChain();
+
+// Initialize starters modal
+initPresetsModal({
+  onLoaded() {
+    syncTrackBuses();
+    document.getElementById('bpm-input').value  = state.bpm;
+    document.getElementById('bpm-slider').value = state.bpm;
+    renderGrid();
+    renderPatternBank();
+    renderSongChain();
+    showSaveIndicator('Pattern loaded');
+  },
+});
+document.getElementById('starters-btn')?.addEventListener('click', openPresetsModal);
+document.getElementById('mob-starters-btn')?.addEventListener('click', openPresetsModal);
 
 // onRender: called by the scheduler when the active pattern changes mid-playback
 function onRender() {

@@ -54,6 +54,7 @@
 
     <div class="footer">
       <div class="footer-left">
+        <button id="starters-btn" class="secondary">Starters</button>
         <button id="edit-kit-btn" class="secondary">Edit Kit</button>
         <button id="clear-btn" class="secondary">Clear</button>
         <button id="reset-btn" class="secondary danger">Reset All</button>
@@ -71,8 +72,23 @@
     </div>
 
     <div class="mobile-transport">
+      <button id="mob-starters-btn" class="mob-transport-btn mob-starters">Starters</button>
       <button id="mob-play-btn" class="mob-transport-btn">▶</button>
       <button id="mob-stop-btn" class="mob-transport-btn mob-stop">■</button>
+    </div>
+
+    <!-- Starters Modal -->
+    <div id="presets-modal" class="modal">
+      <div class="modal-content presets-modal-content">
+        <div class="modal-header">
+          <h2>Starter Patterns</h2>
+          <button id="presets-modal-close" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="presets-hint">Choose a starting pattern. Your current patterns will be replaced.</p>
+          <div id="presets-grid" class="presets-grid"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Sound Designer Modal -->

@@ -695,6 +695,66 @@ button.danger:hover { background: #ff4757; color: white; }
   gap: 10px;
 }
 
+/* ── Starters modal ── */
+.presets-modal-content {
+  max-width: 700px;
+}
+
+.presets-hint {
+  font-size: 13px;
+  color: var(--color-text-dim);
+  margin-bottom: 16px;
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.preset-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 14px 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s, background 0.15s;
+  color: var(--color-text);
+}
+
+.preset-card:hover {
+  border-color: var(--color-accent);
+  background: #1e2a3a;
+}
+
+.preset-card-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.preset-card-bpm {
+  font-size: 11px;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.preset-card-desc {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .presets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* ── Pattern bar ── */
 .pattern-bar {
   background: var(--color-surface);
@@ -932,4 +992,14 @@ button.danger:hover { background: #ff4757; color: white; }
   }
 
   .mob-stop { background: #ff4757; }
+
+  .mob-starters {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    max-width: 80px;
+    background: var(--color-bg);
+    border-color: var(--color-border);
+    color: var(--color-text-dim);
+  }
 }
